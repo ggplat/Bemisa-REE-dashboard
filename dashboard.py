@@ -60,14 +60,19 @@ FALLBACK: dict[str, dict] = {
 # ── FETCH ─────────────────────────────────────────────────────────────────────
 
 def fetch_last_close(yf_symbol: str) -> tuple[Optional[float], Optional[str]]:
-    """Retorna (preço de fechamento, data ISO) do último pregão disponível."""
+    """Retorna (preço de fechamento, data ISO) do último pregão com fechamento válido."""
     try:
-        hist = yf.Ticker(yf_symbol).history(period="5d", auto_adjust=False)
+        hist = yf.Ticker(yf_symbol).history(period="30d", auto_adjust=False)
         if hist.empty:
             log.warning("%s: histórico vazio", yf_symbol)
             return None, None
-        price = float(hist["Close"].iloc[-1])
-        date  = hist.index[-1].date().isoformat()
+        # Descarta linhas com Close NaN e pega o último válido
+        valid = hist["Close"].dropna()
+        if valid.empty:
+            log.warning("%s: nenhum fechamento válido nos últimos 30 dias", yf_symbol)
+            return None, None
+        price = float(valid.iloc[-1])
+        date  = valid.index[-1].date().isoformat()
         log.info("  %s: %.4f (%s)", yf_symbol, price, date)
         return price, date
     except Exception as e:
