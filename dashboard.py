@@ -359,8 +359,8 @@ def render_html(data: dict, updated: str) -> str:
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    now = dt.datetime.utcnow()
-    updated_str = now.strftime("%d/%m/%Y %H:%M UTC")
+    now = dt.datetime.utcnow() - dt.timedelta(hours=3)  # UTC → BRT (UTC-3)
+    updated_str = now.strftime("%d/%m/%Y %H:%M BRT")
 
     data = fetch_all()
 
